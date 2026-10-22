@@ -1,0 +1,69 @@
+menu "STM32 serial link (connect_stm)"
+# 中文：STM32 串口链路 (connect_stm)
+
+    # 中文：用于连接 STM32 的 UART 端口号。
+    # 使用 UART1 与 STM32 通信，UART0 保留给日志。
+    config CONNECT_STM_UART_NUM
+        int "UART port used to talk to the STM32"
+        range 0 2
+        default 1
+        help
+            Use UART1 on the ESP32S3 for the STM32 link; UART0 is kept for logging.
+
+    # 中文：UART TX GPIO（ESP32S3 发送 → STM32 接收）
+    config CONNECT_STM_TX_GPIO
+        int "UART TX GPIO (ESP32S3 -> STM32 RX)"
+        default 17
+
+    # 中文：UART RX GPIO（ESP32S3 接收 ← STM32 发送）
+    config CONNECT_STM_RX_GPIO
+        int "UART RX GPIO (ESP32S3 <- STM32 TX)"
+        default 18
+
+    # 中文：波特率。需与 STM32 侧一致，STM32 现有 USART1 配置为 115200。
+    # OTA 传输 1MB 固件在 115200 下约需 90 秒，可提高到 921600 缩短时间。
+    config CONNECT_STM_BAUD_RATE
+        int "Baud rate"
+        default 115200
+        help
+            Must match the STM32 side. The existing STM32 USART1 is configured at 115200.
+            Sending a 1 MB firmware over OTA takes roughly 90 s at 115200; raise it to
+            921600 to shorten that.
+
+    # 中文：OTA 分片大小（字节）。方案文档建议 1024 或 2048。
+    # 分片越大吞吐越高，但 STM32 侧 RAM 占用越大。
+    config CONNECT_STM_CHUNK_SIZE
+        int "OTA chunk size (bytes)"
+        range 256 4096
+        default 1024
+        help
+            The design document suggests 1024 or 2048. Larger chunks give higher
+            throughput but need more RAM on the STM32 side.
+
+    # 中文：等待 STM32 ACK 的超时时间（ms）。超时后重传当前分片。
+    config CONNECT_STM_ACK_TIMEOUT_MS
+        int "Timeout waiting for an STM32 ACK (ms)"
+        default 500
+        help
+            The current chunk is retransmitted after this timeout.
+
+    # 中文：单帧最大重传次数。
+    config CONNECT_STM_MAX_RETRY
+        int "Max retransmissions per frame"
+        range 1 10
+        default 3
+
+    # 中文：链路存活判定窗口（ms）。超过该时间未收到 STM32 任何帧则视为链路断开。
+    config CONNECT_STM_LINK_TIMEOUT_MS
+        int "Link liveness window (ms)"
+        default 10000
+        help
+            No frame received from the STM32 within this window means the link is
+            considered down.
+
+    # 中文：发送侧任务建议栈大小（字节）。
+    config CONNECT_STM_UPLINK_STACK
+        int "Suggested stack size for the send-side task (bytes)"
+        default 4096
+
+endmenu

@@ -1,0 +1,35 @@
+menu "WiFi and OTA download (get_wifi_ota)"
+# 中文：WiFi 与 OTA 下载 (get_wifi_ota)
+
+    # 中文：WiFi SSID。仅支持 2.4GHz 频段。
+    config GET_WIFI_OTA_WIFI_SSID
+        string "WiFi SSID"
+        default ""
+        help
+            Use the 2.4 GHz band only; the ESP32S3 does not support 5 GHz.
+
+    # 中文：WiFi 密码。
+    config GET_WIFI_OTA_WIFI_PASSWORD
+        string "WiFi password"
+        default ""
+
+    # 中文：HTTP 下载超时（ms）。是单次 socket 读写超时，不是整个下载的总时长限制。
+    config GET_WIFI_OTA_HTTP_TIMEOUT_MS
+        int "HTTP download timeout (ms)"
+        default 15000
+        help
+            Socket read/write timeout for a single operation, not a cap on the
+            total duration of the whole download.
+
+    # 中文：允许 ESP32S3 自升级。打开后，云端下发 target=esp32s3 的任务会写入 OTA 分区
+    # 并切换启动分区，重启后运行新固件。关闭则只允许透传下载给 STM32。
+    config GET_WIFI_OTA_ALLOW_SELF_UPDATE
+        bool "Allow ESP32S3 self-update"
+        default y
+        help
+            When enabled, a cloud job with target=esp32s3 is written to an OTA
+            partition and the boot partition is switched, so the new firmware runs
+            after a reboot. When disabled, only passthrough download to the STM32
+            is allowed.
+
+endmenu

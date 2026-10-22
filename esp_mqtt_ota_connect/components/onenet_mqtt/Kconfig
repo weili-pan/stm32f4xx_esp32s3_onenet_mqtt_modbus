@@ -1,0 +1,104 @@
+menu "OneNET MQTT (onenet_mqtt)"
+# 中文：OneNET MQTT 连接与收发 (onenet_mqtt)
+
+    # 中文：ProductKey（产品ID）。在 OneNET 控制台创建产品后获得。
+    config ONENET_PRODUCT_KEY
+        string "ProductKey"
+        default ""
+        help
+            Obtained after creating a product in the OneNET console.
+
+    # 中文：DeviceName（设备名称）。
+    config ONENET_DEVICE_NAME
+        string "DeviceName"
+        default ""
+
+    # 中文：DeviceSecret（设备密钥）。用于生成 MQTT 密码。
+    # 属敏感信息，注意不要提交到公开仓库。
+    config ONENET_DEVICE_SECRET
+        string "DeviceSecret"
+        default ""
+        help
+            Used to derive the MQTT password. This is sensitive: do not commit it
+            to a public repository.
+
+    # 中文：MQTT 接入地址。旧版多协议接入：非加密 mqtt://mqtts.heclouds.com:1883，
+    # 加密 mqtts://mqttstls.heclouds.com:8883。
+    # 请以 OneNET 控制台「设备接入」页显示的实例地址为准。
+    config ONENET_BROKER_URI
+        string "MQTT broker URI"
+        default "mqtt://mqtts.heclouds.com:1883"
+        help
+            Legacy multi-protocol access:
+              plain  mqtt://mqtts.heclouds.com:1883
+              TLS    mqtts://mqttstls.heclouds.com:8883
+            Always take the instance address shown on the OneNET console
+            "Device access" page as authoritative.
+
+    # 中文：启用 TLS。仅当 ONENET_BROKER_URI 以 mqtts:// 开头时才需要勾选。
+    # 勾选后使用 IDF 内置证书 bundle 校验服务端证书；URI 用明文 mqtt:// 时
+    # 即使勾选也不会生效（esp-mqtt 按 URI 的 scheme 决定传输层）。
+    config ONENET_USE_TLS
+        bool "Enable TLS"
+        default y
+        help
+            Only needed when ONENET_BROKER_URI starts with mqtts://. When enabled,
+            the IDF built-in certificate bundle is used to verify the server
+            certificate. With a plain mqtt:// URI this has no effect, because
+            esp-mqtt picks the transport from the URI scheme.
+
+    # 中文：token 有效期（秒）。生成 token 时 et = 当前时间 + 该值，默认 30 天。
+    # 依赖 SNTP 对时，若系统时间未同步会导致鉴权失败。
+    config ONENET_TOKEN_LIFETIME_S
+        int "Token lifetime (seconds)"
+        default 2592000
+        help
+            When generating the token, et = current time + this value. 30 days by
+            default. This relies on SNTP time sync; if the system clock is not
+            synchronised authentication will fail.
+
+    # 中文：MQTT keepalive（秒）。
+    config ONENET_KEEPALIVE_S
+        int "MQTT keepalive (seconds)"
+        range 10 1800
+        default 120
+
+    # 注意：这里只填 $sys/{ProductKey}/{DeviceName}/ 之后的部分。
+    # 原因：Kconfig 的字符串会写入 sdkconfig.cmake，而 CMake 不接受字符串里
+    # 出现 "$sys/{" 这种「$ 后跟非 {} 形式的 {」写法，会直接报语法错误。
+    # 因此平台固定前缀 $sys/{pk}/{dn}/ 由代码拼装，这里只暴露易变的后半段。
+    #
+    # Note: enter only the part after $sys/{ProductKey}/{DeviceName}/ here.
+    # Reason: Kconfig strings are written into sdkconfig.cmake, and CMake rejects
+    # the substring "$sys/{" (a "$" followed by a "{" that is not "${}") with a
+    # syntax error. The fixed platform prefix $sys/{pk}/{dn}/ is therefore
+    # assembled in code, and only the variable suffix is exposed here.
+
+    # 中文：属性上报 topic 后缀。实际 topic 为 $sys/{ProductKey}/{DeviceName}/<该值>。
+    config ONENET_TOPIC_PROPERTY_POST
+        string "Property report topic suffix"
+        default "thing/property/post"
+        help
+            The actual topic is $sys/{ProductKey}/{DeviceName}/<this value>.
+
+    # 中文：属性上报响应 topic 后缀。
+    config ONENET_TOPIC_PROPERTY_POST_REPLY
+        string "Property report reply topic suffix"
+        default "thing/property/post/reply"
+
+    # 中文：属性设置（下行）topic 后缀。
+    config ONENET_TOPIC_PROPERTY_SET
+        string "Property set (downlink) topic suffix"
+        default "thing/property/set"
+
+    # 中文：属性设置响应 topic 后缀。
+    config ONENET_TOPIC_PROPERTY_SET_REPLY
+        string "Property set reply topic suffix"
+        default "thing/property/set/reply"
+
+    # 中文：周期性属性上报间隔（秒）。
+    config ONENET_REPORT_PERIOD_S
+        int "Periodic property report interval (seconds)"
+        default 30
+
+endmenu
